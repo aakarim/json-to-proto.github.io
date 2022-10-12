@@ -36,6 +36,27 @@ export class Options {
     }
 }
 
+// strip periods and special characters
+function normaliseName(source: string): string {
+    let spl = source.split('.')
+    spl = spl.map(s => s.charAt(0).toUpperCase() + s.slice(1))
+    return spl.join('').replace(/\$/g, '').replace(/:/g, '');
+}
+
+function normaliseFieldName(source: string): string {
+    return (
+      source
+        .split(/":|\$/g)
+        .join("")
+        // snake case
+        .match(
+          /[A-Z]{2,}(?=[A-Z][a-z]+[0-9]*|\b)|[A-Z]?[a-z]+[0-9]*|[A-Z]|[0-9]+/g
+        )
+        .map((x) => x.toLowerCase())
+        .join('_')
+    );
+}
+
 class Collector {
     private imports: Set<string>;
     private messages: Array<Array<string>>;
@@ -61,6 +82,19 @@ class Collector {
         }
 
         this.messageNameSuffixCounter[source] = 1;
+
+        return source;
+    }
+
+    // message names conflict with field names, but not with other cousin field names
+    generateUniqueFieldName(source: string): string {
+        if (this.messageNameSuffixCounter.hasOwnProperty(source)) {
+            const suffix = this.messageNameSuffixCounter[source];
+
+            this.messageNameSuffixCounter[source] = suffix + 1;
+
+            return `${source}${suffix}`;
+        }
 
         return source;
     }
@@ -130,8 +164,10 @@ class Analyzer {
 
         for (const [key, value] of Object.entries(json)) {
             const typeName = this.analyzeProperty(key, value, collector, inlineShift)
-
-            lines.push(`    ${typeName} ${key} = ${index};`);
+            const jsonKey = collector.generateUniqueFieldName(normaliseFieldName(key));
+            lines.push(
+              `    ${typeName} ${jsonKey} = ${index} [json_name = "${key}" ];`
+            );
 
             index += 1;
         }
@@ -321,8 +357,8 @@ class Analyzer {
 
         for (const [key, value] of Object.entries(source)) {
             const typeName = this.analyzeProperty(key, value, collector, inlineShift)
-
-            lines.push(`${inlineShift}    ${typeName} ${key} = ${index};`);
+            const jsonKey =  collector.generateUniqueFieldName(normaliseFieldName(key));
+            lines.push(`${inlineShift}    ${typeName} ${jsonKey} = ${index} [json_name = "${key}" ];`);
 
             index += 1;
         }
@@ -361,7 +397,7 @@ export function convert(source: string, options: Options): Result {
 }
 
 function toMessageName(source: string): string {
-    return source.charAt(0).toUpperCase() + source.substr(1).toLowerCase();
+    return normaliseName(source.charAt(0).toUpperCase() + source.substr(1).toLowerCase());
 }
 
 function render(imports: Set<string>, messages: Array<Array<string>>, lines: Array<string>, options: Options): string {
