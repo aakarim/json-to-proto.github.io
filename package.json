@@ -4,7 +4,8 @@
   "description": "JSON to Protobuf",
   "license": "MIT",
   "dependencies": {
-    "highlight.js": "^11.6.0"
+    "highlight.js": "^11.6.0",
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@types/tape": "^4.13.2",

@@ -1,3 +1,4 @@
+import { merge } from "lodash";
 const googleAnyImport = "google/protobuf/any.proto";
 const googleTimestampImport = "google/protobuf/timestamp.proto";
 
@@ -194,13 +195,19 @@ class Analyzer {
 
         if (length > 1) {
             const primitive = this.samePrimitiveType(value);
-
             if (primitive.complex === false) {
                 return `repeated ${primitive.name}`;
             }
         }
+        // deep merge all the array values together so we have one super object with all the keys and potential values
+        // all array values should be recursively merged.
+        // for instance: [{"items": {"a": {"b": 1}, "c": {"d": 2}}}, {"items": {"a": {"e": 3}, "c": {"f": 4}}}]
+        // should become {"items": {"a": {"b": 1, "e": 3}, "c": {"d": 2, "f": 4}}}
+        const merged = value.reduce((acc, val) => {
+            return merge(acc, val);
+        }, {});
 
-        return `repeated ${this.analyzeObjectProperty(key, first, collector, inlineShift)}`;
+        return `repeated ${this.analyzeObjectProperty(key, merged, collector, inlineShift)}`;
     }
 
     analyzeProperty(key: string, value: any, collector: Collector, inlineShift: string): string {
@@ -213,7 +220,6 @@ class Analyzer {
 
     analyzeObjectProperty(key: string, value: any, collector: Collector, inlineShift: string) {
         const typeName = this.analyzeType(value, collector);
-
         if (typeName === "object") {
             if (this.options.mergeSimilarObjects) {
                 const [mergeSimilarObjectKey, canMerge] = this.mergeSimilarObjectKey(value);
@@ -370,7 +376,7 @@ class Analyzer {
 
     addShift(): string {
         if (this.options.inline) {
-            return `    `;
+            return `  `;
         }
 
         return "";
