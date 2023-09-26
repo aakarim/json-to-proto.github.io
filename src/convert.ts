@@ -1,9 +1,12 @@
 import { merge } from "lodash";
 const googleAnyImport = "google/protobuf/any.proto";
 const googleTimestampImport = "google/protobuf/timestamp.proto";
+const googleStructImport = "google/protobuf/struct.proto";
 
 const googleAny = "google.protobuf.Any";
 const googleTimestamp = "google.protobuf.Timestamp";
+const googleNull = "google.protobuf.NullValue";
+const googleValue = "google.protobuf.Value";
 
 class Result {
     constructor(
@@ -25,7 +28,7 @@ class ProtoPrimitiveType {
 const boolProtoPrimitiveType = new ProtoPrimitiveType("bool", false, false);
 const stringProtoPrimitiveType = new ProtoPrimitiveType("string", false, false);
 const int64ProtoPrimitiveType = new ProtoPrimitiveType("int64", false, true);
-const complexProtoType = new ProtoPrimitiveType(googleAny, true, false);
+const complexProtoType = new ProtoPrimitiveType(googleValue, true, false);
 const timestampProtoType = new ProtoPrimitiveType(googleTimestamp, false, false);
 
 export class Options {
@@ -180,17 +183,17 @@ class Analyzer {
         // [] -> any
         const length = value.length;
         if (length === 0) {
-            collector.addImport(googleAnyImport);
+            collector.addImport(googleStructImport);
 
-            return `repeated ${googleAny}`;
+            return `repeated ${googleValue}`;
         }
 
         // [[...], ...] -> any
         const first = value[0];
         if (Array.isArray(first)) {
-            collector.addImport(googleAnyImport);
+            collector.addImport(googleStructImport);
 
-            return `repeated ${googleAny}`;
+            return `repeated ${googleValue}`;
         }
 
         if (length > 1) {
@@ -302,17 +305,17 @@ class Analyzer {
                 return "bool";
             case "object":
                 if (value === null) {
-                    collector.addImport(googleAnyImport);
+                    collector.addImport(googleStructImport);
 
-                    return googleAny;
+                    return googleValue;
                 }
 
                 return "object";
         }
 
-        collector.addImport(googleAnyImport);
+        collector.addImport(googleStructImport);
 
-        return googleAny;
+        return googleValue;
     }
 
     toPrimitiveType(value: any): ProtoPrimitiveType {
