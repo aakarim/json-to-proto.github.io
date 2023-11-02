@@ -44,7 +44,9 @@ export class Options {
 function normaliseName(source: string): string {
     let spl = source.split('.')
     spl = spl.map(s => s.charAt(0).toUpperCase() + s.slice(1))
-    return spl.join('').replace(/\$/g, '').replace(/:/g, '');
+    return spl.join('').replace(/\$/g, '').replace(/:/g, '')
+        //replace slashes
+        .replace(/\//g, 'slash_');
 }
 
 function normaliseFieldName(source: string): string {
