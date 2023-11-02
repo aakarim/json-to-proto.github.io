@@ -198,7 +198,7 @@ class Analyzer {
             return `repeated ${googleValue}`;
         }
 
-        if (length > 1) {
+        if (length > 0) {
             const primitive = this.samePrimitiveType(value);
             if (primitive.complex === false) {
                 return `repeated ${primitive.name}`;
