@@ -8,11 +8,16 @@ module.exports = {
                 use: 'ts-loader',
                 exclude: /node_modules/,
             },
+            {
+                test: /\.json$/,
+                use: 'ts-loader',
+                exclude: /node_modules/,
+            },
         ],
     },
 
     resolve: {
-        extensions: [ '.tsx', '.ts', '.js' ],
+        extensions: [ '.tsx', '.ts', '.js', '.json' ],
     },
 
     entry: {
