@@ -20,6 +20,7 @@
   "scripts": {
     "build": "webpack --mode production",
     "esbuild": "esbuild ./src/app.ts --bundle --minify --outfile=./static/js/app.js",
-    "test": "ts-node node_modules/tape/bin/tape src/tests/*.ts"
+    "test": "ts-node node_modules/tape/bin/tape src/tests/*.ts",
+    "local": "ts-node src/local.ts"
   }
 }
